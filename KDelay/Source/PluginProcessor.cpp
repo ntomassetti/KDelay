@@ -24,6 +24,10 @@ KdelayAudioProcessor::KdelayAudioProcessor()
                        )
 #endif
 {
+
+	//Params
+	addParameter(Threshold = new AudioParameterFloat("threshold", "Threshold", -96.0f, 6.0f, -16.0f));
+
 }
 
 KdelayAudioProcessor::~KdelayAudioProcessor()
@@ -149,16 +153,17 @@ void KdelayAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer&
 	envFollower.process(context);
 	auto env = envFollower.GetEnvelope();
 	//delay "gate" driven by envelope follower
-	if(env > 0.4){
+	if(env > dBToGain(*Threshold)){
 		delay.setWetLevel(env);
 		delay.process(context);
 	}
 	else {
 		//smoothly goes from threshold to 0
-		float newWet = lint(4.f, 0.f, .33f);
+		float newWet = lint(dBToGain(*Threshold), 0.f, .33f);
 		delay.setWetLevel(0);
 		delay.process(context);
 	}
+	DBG(dBToGain(*Threshold));
 }
 
 //==============================================================================
@@ -175,15 +180,12 @@ AudioProcessorEditor* KdelayAudioProcessor::createEditor()
 //==============================================================================
 void KdelayAudioProcessor::getStateInformation (MemoryBlock& destData)
 {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
+	MemoryOutputStream(destData, true).writeFloat(*Threshold);
 }
 
 void KdelayAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+	*Threshold = MemoryInputStream(data, static_cast<size_t> (sizeInBytes), false).readFloat();
 }
 
 //==============================================================================

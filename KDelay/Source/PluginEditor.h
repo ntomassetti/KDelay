@@ -16,19 +16,38 @@
 //==============================================================================
 /**
 */
-class KdelayAudioProcessorEditor  : public AudioProcessorEditor
+class KdelayAudioProcessorEditor  : public AudioProcessorEditor, private Timer
 {
 public:
     KdelayAudioProcessorEditor (KdelayAudioProcessor&);
     ~KdelayAudioProcessorEditor();
 
+
     //==============================================================================
     void paint (Graphics&) override;
     void resized() override;
 
+	void changeSliderValue(Slider* slider);
+	void startDragChange(Slider* slider);
+	void endDragChange(Slider* slider);
+
+	enum
+	{
+		paramControlHeight = 40,
+		paramLabelWidth = 80,
+		paramSliderWidth = 300
+	};
+
 private:
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
+
+	Label noParameterLabel{ "noparam", "No parameters available" };
+	OwnedArray<Slider> paramSliders;
+	OwnedArray<Label> paramLabels;
+
+	AudioParameterFloat* getParameterForSlider(Slider* slider);
+
+	void timerCallback() override;
+
     KdelayAudioProcessor& processor;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (KdelayAudioProcessorEditor)

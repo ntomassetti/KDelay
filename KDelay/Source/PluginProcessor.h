@@ -57,16 +57,25 @@ public:
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+
+private:
+	EnvFollower<float> envFollower;
+	Delay<float> delay;
+
+	////////
+	//Params
+	AudioParameterFloat* Threshold;
+
+
 private:
 	/*Linear interpolate*/
 	float lint(float a, float b, float alpha) {
 		return (a * (1.0f - alpha)) + (b * alpha);
 	};
 
-private:
-	EnvFollower<float> envFollower;
-	Delay<float> delay;
-
+	/*dB to gain*/
+	float dBToGain(float inDB) { return pow(10.0f, inDB / 20.0f);
+	};
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (KdelayAudioProcessor)
 };
