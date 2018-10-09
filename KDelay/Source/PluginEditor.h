@@ -12,7 +12,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "PluginProcessor.h"
-
+#include "MyLookAndFeel.h"
 //==============================================================================
 /**
 */
@@ -43,6 +43,8 @@ private:
 	Label noParameterLabel{ "noparam", "No parameters available" };
 	OwnedArray<Slider> paramSliders;
 	OwnedArray<Label> paramLabels;
+
+	MyLookAndFeel myLAF;
 
 	AudioParameterFloat* getParameterForSlider(Slider* slider);
 

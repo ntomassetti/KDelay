@@ -28,7 +28,12 @@ KdelayAudioProcessorEditor::KdelayAudioProcessorEditor (KdelayAudioProcessor& p)
 
 
 			aSlider->setRange(param->range.start, param->range.end);
-			aSlider->setSkewFactor(1.5f);
+			if (aSlider->getName() == "Threshold") {
+				aSlider->setSkewFactor(1.5f);
+			}
+			else {
+				aSlider->setSkewFactor(0.25f);
+			}
 
 			aSlider->setSliderStyle(Slider::LinearBar);
 
@@ -85,7 +90,7 @@ void KdelayAudioProcessorEditor::paint (Graphics& g)
 
     g.setColour (Colours::white);
     g.setFont (15.0f);
-    g.drawFittedText ("K-Delay", getLocalBounds(), Justification::centred, 1);
+    //g.drawFittedText ("K-Delay", getLocalBounds(), Justification::centred, 1);
 }
 
 void KdelayAudioProcessorEditor::resized()

@@ -27,7 +27,14 @@ KdelayAudioProcessor::KdelayAudioProcessor()
 
 	//Params
 	addParameter(Threshold = new AudioParameterFloat("threshold", "Threshold", -96.0f, 6.0f, -16.0f));
-
+	addParameter(LeftChDelLength = new AudioParameterFloat("leftChDelLength", "Left Channel Delay Length", 0.00001f, 2.0f, 0.5f));
+	addParameter(RightChDelLength = new AudioParameterFloat("rightChDelLength", "Right Channel Delay Length", 0.00001f, 2.0f, 0.5f));
+	addParameter(Feedback = new AudioParameterFloat("feedback", "Feedback", 0.001f, 0.99999999f, 0.25f));
+	addParameter(WetLevel = new AudioParameterFloat("wetLevel", "Wet Level", 0.0f, 1.0f, 1.0f));
+	addParameter(DryLevel = new AudioParameterFloat("dryLevel", "Dry Level", 0.0f, 1.0f, 1.0f));
+	addParameter(EnvFollowerAttack = new AudioParameterFloat("EnvAttack", "Gate Attack Time", 0.0001f, 5.0f, 0.1f));
+	addParameter(EnvFollowerRelease = new AudioParameterFloat("EnvRelease", "Gate Release Time", 0.0001f, 5.0f, 0.1f));
+	addParameter(lerpAlpha = new AudioParameterFloat("gaterelease", "Gate Release", 0.0001f, 1.0f, .001f));
 }
 
 KdelayAudioProcessor::~KdelayAudioProcessor()
@@ -150,20 +157,32 @@ void KdelayAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer&
 	dsp::AudioBlock<float> block(buffer);
 	dsp::ProcessContextReplacing<float> context(block);
 
+	UpdateParameters();
+
 	envFollower.process(context);
 	auto env = envFollower.GetEnvelope();
 	//delay "gate" driven by envelope follower
-	if(env > dBToGain(*Threshold)){
-		delay.setWetLevel(env);
-		delay.process(context);
+	if(env > ThresholdAsGain){
+		auto envVal = env;
+		if (envVal >= 1.0f) {
+			envVal = 1.0f;
+		}
+		delay.setWetLevel(env * *WetLevel);
+		
+		wetMult = ThresholdAsGain;
 	}
 	else {
-		//smoothly goes from threshold to 0
-		float newWet = lint(dBToGain(*Threshold), 0.f, .33f);
-		delay.setWetLevel(0);
-		delay.process(context);
+		//float newWet = lint(ThresholdAsGain, 0.f, *lerpAlpha);
+		if (wetMult > 0.0f)
+		{
+			wetMult -= 1.0f * *lerpAlpha;//reduces popping
+		}
+		else {
+			wetMult = 0.0f;
+		}
+		delay.setWetLevel(wetMult * *WetLevel);
 	}
-	DBG(dBToGain(*Threshold));
+	delay.process(context);
 }
 
 //==============================================================================
@@ -181,11 +200,38 @@ AudioProcessorEditor* KdelayAudioProcessor::createEditor()
 void KdelayAudioProcessor::getStateInformation (MemoryBlock& destData)
 {
 	MemoryOutputStream(destData, true).writeFloat(*Threshold);
+	MemoryOutputStream(destData, true).writeFloat(*LeftChDelLength);
+	MemoryOutputStream(destData, true).writeFloat(*RightChDelLength);
+	MemoryOutputStream(destData, true).writeFloat(*Feedback);
+	MemoryOutputStream(destData, true).writeFloat(*WetLevel);
+	MemoryOutputStream(destData, true).writeFloat(*DryLevel);
+	MemoryOutputStream(destData, true).writeFloat(*EnvFollowerAttack);
+	MemoryOutputStream(destData, true).writeFloat(*EnvFollowerRelease);
+	MemoryOutputStream(destData, true).writeFloat(*lerpAlpha);
 }
 
 void KdelayAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
 	*Threshold = MemoryInputStream(data, static_cast<size_t> (sizeInBytes), false).readFloat();
+	*LeftChDelLength = MemoryInputStream(data, static_cast<size_t> (sizeInBytes), false).readFloat();
+	*RightChDelLength = MemoryInputStream(data, static_cast<size_t> (sizeInBytes), false).readFloat();
+	*Feedback = MemoryInputStream(data, static_cast<size_t> (sizeInBytes), false).readFloat();
+	*WetLevel = MemoryInputStream(data, static_cast<size_t> (sizeInBytes), false).readFloat();
+	*DryLevel = MemoryInputStream(data, static_cast<size_t> (sizeInBytes), false).readFloat();
+	*EnvFollowerAttack = MemoryInputStream(data, static_cast<size_t> (sizeInBytes), false).readFloat();
+	*EnvFollowerRelease = MemoryInputStream(data, static_cast<size_t> (sizeInBytes), false).readFloat();
+	*lerpAlpha = MemoryInputStream(data, static_cast<size_t> (sizeInBytes), false).readFloat();
+}
+
+void KdelayAudioProcessor::UpdateParameters()
+{
+	delay.setDelayTime(0, *LeftChDelLength);
+	delay.setDelayTime(1, *RightChDelLength);
+	ThresholdAsGain = dBToGain(*Threshold);
+	envFollower.setAttack(*EnvFollowerAttack);
+	envFollower.setRelease(*EnvFollowerRelease);
+	delay.setFeedback(*Feedback);
+	delay.setDryLevel(*DryLevel);
 }
 
 //==============================================================================

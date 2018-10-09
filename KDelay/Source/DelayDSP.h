@@ -71,6 +71,7 @@ public:
 		setDelayTime(0, 0.25f);
 		setDelayTime(1, 0.12f);
 		setWetLevel(0.8f);
+		setDryLevel(1.0f);
 		setFeedback(0.5f);
 	}
 
@@ -116,9 +117,20 @@ public:
 		feedback = newValue;
 	}
 
+	void setDryLevel(Type newValue) noexcept
+	{
+		dryLevel = newValue;
+	}
+
 	void setWetLevel(Type newValue) noexcept
 	{
-		jassert(newValue >= Type(0) && newValue <= Type(1));
+		//jassert(newValue >= Type(0) && newValue <= Type(1));
+		if (newValue < 0) {
+			newValue = 0;
+		}
+		else if (newValue > 1) {
+			newValue = 1;
+		}
 		wetLevel = newValue;
 	}
 
@@ -157,7 +169,7 @@ public:
 				auto inputSample = wetLevel * input[i];
 				auto dlineInputSample = std::tanh(inputSample + feedback * delayedSample);
 				dline.push(dlineInputSample);
-				auto outputSample = input[i] + delayedSample;
+				auto outputSample = (input[i] * dryLevel) + delayedSample;
 				output[i] = outputSample;
 			}
 		}
@@ -176,6 +188,8 @@ private:
 
 	Type sampleRate{ Type(44.1e3) };
 	Type maxDelayTime{ Type(2) };
+
+	Type dryLevel{ Type(0) };
 
 	void updateDelayLineSize() {
 		auto delayLineSizeSamples = (size_t)std::ceil(maxDelayTime * sampleRate);

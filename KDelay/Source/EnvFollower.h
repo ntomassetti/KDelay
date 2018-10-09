@@ -34,12 +34,14 @@ public:
 		UpdateCoefficients();
 	}
 
-	void setAttack (Type newValue){
+	void setAttack (Type newValue) noexcept
+	{
 		jassert(newValue >= Type(0));
 		attackTime = 1000 * newValue;
 	}
 
-	void setRelease(Type newValue) {
+	void setRelease(Type newValue) noexcept 
+	{
 		jassert(newValue >= Type(0));
 		releaseTime = 1000 * newValue;
 	}
