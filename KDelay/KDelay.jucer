@@ -3,6 +3,9 @@
 <JUCERPROJECT id="yTS1qQ" name="KDelay" projectType="audioplug" jucerVersion="5.3.2">
   <MAINGROUP id="Oc9Nst" name="KDelay">
     <GROUP id="{F0667FE2-F548-BA77-DFB4-E522B08F2471}" name="Source">
+      <FILE id="VHfb0V" name="MyLookAndFeel.cpp" compile="1" resource="0"
+            file="Source/MyLookAndFeel.cpp"/>
+      <FILE id="mbwiua" name="MyLookAndFeel.h" compile="0" resource="0" file="Source/MyLookAndFeel.h"/>
       <FILE id="oGIqMj" name="DelayDSP.h" compile="0" resource="0" file="Source/DelayDSP.h"/>
       <FILE id="rU7LQj" name="EnvFollower.h" compile="0" resource="0" file="Source/EnvFollower.h"/>
       <FILE id="ajWjuM" name="PluginProcessor.cpp" compile="1" resource="0"
@@ -14,15 +17,13 @@
       <FILE id="DY8vWl" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
     </GROUP>
     <FILE id="ucnSG4" name="KellenBG.jpg" compile="0" resource="1" file="C:/Users/Studio 5/Downloads/KellenBG.jpg"/>
-    <FILE id="VHfb0V" name="MyLookAndFeel.cpp" compile="1" resource="0"
-          file="Source/MyLookAndFeel.cpp"/>
-    <FILE id="mbwiua" name="MyLookAndFeel.h" compile="0" resource="0" file="Source/MyLookAndFeel.h"/>
     <FILE id="fhnnKa" name="KDelayKnob_norm.png" compile="0" resource="1"
           file="Images/KDelayKnob_norm.png"/>
     <FILE id="fxOwXw" name="KDelayKnobHover.png" compile="0" resource="1"
           file="Images/KDelayKnobHover.png"/>
     <FILE id="MrUFIh" name="KDelayKnobAlpha.png" compile="0" resource="1"
           file="Images/KDelayKnobAlpha.png"/>
+    <FILE id="mvmgJw" name="KFace.png" compile="0" resource="1" file="Images/KFace.png"/>
   </MAINGROUP>
   <EXPORTFORMATS>
     <VS2017 targetFolder="Builds/VisualStudio2017">

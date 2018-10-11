@@ -32,9 +32,10 @@ KdelayAudioProcessor::KdelayAudioProcessor()
 	addParameter(Feedback = new AudioParameterFloat("feedback", "Feedback", 0.001f, 0.99999999f, 0.25f));
 	addParameter(WetLevel = new AudioParameterFloat("wetLevel", "Wet Level", 0.0f, 1.0f, 1.0f));
 	addParameter(DryLevel = new AudioParameterFloat("dryLevel", "Dry Level", 0.0f, 1.0f, 1.0f));
-	addParameter(EnvFollowerAttack = new AudioParameterFloat("EnvAttack", "Gate Attack Time", 0.0001f, 5.0f, 0.1f));
-	addParameter(EnvFollowerRelease = new AudioParameterFloat("EnvRelease", "Gate Release Time", 0.0001f, 5.0f, 0.1f));
+	addParameter(EnvFollowerAttack = new AudioParameterFloat("EnvAttack", "Envelope Follower Attack", 0.0001f, 5.0f, 0.1f));
+	addParameter(EnvFollowerRelease = new AudioParameterFloat("EnvRelease", "Envelope Follower Release", 0.0001f, 5.0f, 0.1f));
 	addParameter(lerpAlpha = new AudioParameterFloat("gaterelease", "Gate Release", 0.0001f, 1.0f, .001f));
+	addParameter(linkDelayLength = new AudioParameterBool("delLink", "Link Delay Length", false));
 }
 
 KdelayAudioProcessor::~KdelayAudioProcessor()
@@ -208,6 +209,7 @@ void KdelayAudioProcessor::getStateInformation (MemoryBlock& destData)
 	MemoryOutputStream(destData, true).writeFloat(*EnvFollowerAttack);
 	MemoryOutputStream(destData, true).writeFloat(*EnvFollowerRelease);
 	MemoryOutputStream(destData, true).writeFloat(*lerpAlpha);
+	MemoryOutputStream(destData, true).writeBool(*linkDelayLength);
 }
 
 void KdelayAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
@@ -221,18 +223,30 @@ void KdelayAudioProcessor::setStateInformation (const void* data, int sizeInByte
 	*EnvFollowerAttack = MemoryInputStream(data, static_cast<size_t> (sizeInBytes), false).readFloat();
 	*EnvFollowerRelease = MemoryInputStream(data, static_cast<size_t> (sizeInBytes), false).readFloat();
 	*lerpAlpha = MemoryInputStream(data, static_cast<size_t> (sizeInBytes), false).readFloat();
+	*linkDelayLength = MemoryInputStream(data, static_cast<size_t> (sizeInBytes), false).readBool();
 }
 
 void KdelayAudioProcessor::UpdateParameters()
 {
-	delay.setDelayTime(0, *LeftChDelLength);
-	delay.setDelayTime(1, *RightChDelLength);
+
 	ThresholdAsGain = dBToGain(*Threshold);
 	envFollower.setAttack(*EnvFollowerAttack);
 	envFollower.setRelease(*EnvFollowerRelease);
 	delay.setFeedback(*Feedback);
 	delay.setDryLevel(*DryLevel);
+	if (*linkDelayLength) {
+		delay.setDelayTime(0, *LeftChDelLength);
+		delay.setDelayTime(1, *LeftChDelLength);
+		DBG("TRUE");
+	}
+	else {
+		delay.setDelayTime(0, *LeftChDelLength);
+		delay.setDelayTime(1, *RightChDelLength);
+		DBG("FALSE");
+	}
+
 }
+
 
 //==============================================================================
 // This creates new instances of the plugin..

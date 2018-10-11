@@ -38,11 +38,15 @@ public:
 		paramSliderWidth = 300
 	};
 
+	void updateToggleState(Button* button, String name);
+
+
 private:
 
 	Label noParameterLabel{ "noparam", "No parameters available" };
 	OwnedArray<Slider> paramSliders;
 	OwnedArray<Label> paramLabels;
+	OwnedArray<ToggleButton> paramToggles;
 
 	MyLookAndFeel myLAF;
 

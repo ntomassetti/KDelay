@@ -59,6 +59,8 @@ public:
 
 	void UpdateParameters();
 
+
+
 private:
 	EnvFollower<float> envFollower;
 	Delay<float> delay;
@@ -78,6 +80,8 @@ private:
 	AudioParameterFloat* EnvFollowerRelease;
 
 	AudioParameterFloat* lerpAlpha;
+
+	AudioParameterBool* linkDelayLength;
 
 private:
 	/*Linear interpolate*/

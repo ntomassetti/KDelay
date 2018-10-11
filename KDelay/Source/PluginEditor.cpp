@@ -15,7 +15,7 @@
 KdelayAudioProcessorEditor::KdelayAudioProcessorEditor (KdelayAudioProcessor& p)
     : AudioProcessorEditor (&p), processor (p)
 {
-	int colorMult = 196;
+	int colorMult = 100;
 	auto& params = processor.getParameters();
 	for (auto pa : params)
 	{
@@ -37,7 +37,7 @@ KdelayAudioProcessorEditor::KdelayAudioProcessorEditor (KdelayAudioProcessor& p)
 
 			aSlider->setSliderStyle(Slider::LinearBar);
 
-			aSlider->setColour(Slider::ColourIds::trackColourId, Colour(0, colorMult, colorMult));
+			aSlider->setColour(Slider::ColourIds::trackColourId, Colour(colorMult, colorMult, colorMult));
 			aSlider->setColour(Slider::ColourIds::textBoxOutlineColourId, Colours::black);
 			aSlider->setValue(*param);
 
@@ -49,10 +49,22 @@ KdelayAudioProcessorEditor::KdelayAudioProcessorEditor (KdelayAudioProcessor& p)
 
 			Label* aLabel;
 			paramLabels.add(aLabel = new Label(param->name, param->name));
-			aLabel->setColour(Label::ColourIds::backgroundColourId, Colour(0, colorMult, colorMult));
+			aLabel->setColour(Label::ColourIds::backgroundColourId, Colour(colorMult, colorMult, colorMult));
 			aLabel->setColour(Label::ColourIds::outlineColourId, Colours::black);
 			addAndMakeVisible(aLabel);
 			colorMult -= 10;
+			
+		}
+		if (auto* param = dynamic_cast<AudioParameterBool*> (pa)) {
+			ToggleButton* Toggle;
+			paramToggles.add(Toggle = new ToggleButton(param->name));
+			Toggle->onClick = [this, Toggle] { updateToggleState(Toggle, "Delay Synch"); };
+			addAndMakeVisible(Toggle);
+			Label* aLabel;
+			paramLabels.add(aLabel = new Label(param->name, param->name));
+			aLabel->setColour(Label::ColourIds::backgroundColourId, Colour(colorMult, colorMult, colorMult));
+			aLabel->setColour(Label::ColourIds::outlineColourId, Colours::black);
+			addAndMakeVisible(aLabel);
 		}
 
 	}
@@ -61,7 +73,7 @@ KdelayAudioProcessorEditor::KdelayAudioProcessorEditor (KdelayAudioProcessor& p)
 
 	//Resizeable
 	setResizable(true, true);
-	setResizeLimits(300, paramControlHeight * paramSliders.size(), 12000, paramControlHeight * paramSliders.size());
+	//setResizeLimits(300, paramControlHeight * paramSliders.size(), 12000, paramControlHeight * paramSliders.size());
 	//
 	if (paramSliders.size() == 0)
 	{
@@ -71,7 +83,7 @@ KdelayAudioProcessorEditor::KdelayAudioProcessorEditor (KdelayAudioProcessor& p)
 	else
 	{
 		setSize(paramSliderWidth + paramLabelWidth,
-			jmax(100, paramControlHeight * paramSliders.size()));
+			jmax(100, paramControlHeight * paramLabels.size()));
 
 		startTimer(100);
 	}
@@ -86,11 +98,11 @@ KdelayAudioProcessorEditor::~KdelayAudioProcessorEditor()
 void KdelayAudioProcessorEditor::paint (Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (ResizableWindow::backgroundColourId));
+    g.fillAll (Colour::fromRGB(25,25,25));
+	Image KBGFace = ImageCache::getFromMemory(BinaryData::KFace_png, BinaryData::KFace_pngSize);
+	g.setTiledImageFill(KBGFace, 0, 0, .25f);
+	g.fillAll();
 
-    g.setColour (Colours::white);
-    g.setFont (15.0f);
-    //g.drawFittedText ("K-Delay", getLocalBounds(), Justification::centred, 1);
 }
 
 void KdelayAudioProcessorEditor::resized()
@@ -98,14 +110,24 @@ void KdelayAudioProcessorEditor::resized()
 	auto r = getLocalBounds();
 	noParameterLabel.setBounds(r);
 
-	for (auto i = 0; i < paramSliders.size(); ++i)
+
+	for (auto i = 0; i < paramLabels.size(); ++i)
 	{
 		auto paramBounds = r.removeFromTop(paramControlHeight);
 		auto labelBounds = paramBounds.removeFromLeft(paramLabelWidth);
-
-		paramLabels[i]->setBounds(labelBounds);
-		paramSliders[i]->setBounds(paramBounds);
+		if (i < paramSliders.size()) {
+			paramLabels[i]->setBounds(labelBounds);
+			paramSliders[i]->setBounds(paramBounds);
+		}
+		else {
+			paramLabels[i]->setBounds(labelBounds);
+			paramToggles[0]->setBounds(paramBounds);
+		}
+		
 	}
+	
+	//paramLabels[paramSliders.size() + 1]->setBounds(labelBounds);
+	//
 }
 
 void KdelayAudioProcessorEditor::changeSliderValue(Slider * slider)
@@ -124,6 +146,26 @@ void KdelayAudioProcessorEditor::endDragChange(Slider * slider)
 {
 	if (auto* param = getParameterForSlider(slider))
 		param->endChangeGesture();
+}
+
+void KdelayAudioProcessorEditor::updateToggleState(Button * button, String name)
+{
+	auto& params = getAudioProcessor()->getParameters();
+	auto state = button->getToggleState();
+	if (name == "Delay Synch") {
+		if (auto* param = dynamic_cast<AudioParameterBool*>(params.getLast()))
+		{
+			*param = state;
+			for (auto i = 0; i < paramSliders.size(); i++) {
+				if (paramSliders[i]->getName() == "Right Channel Delay Length") {
+						paramSliders[i]->setEnabled(!*param);
+
+				}
+			}
+		}
+
+	}
+
 }
 
 AudioParameterFloat * KdelayAudioProcessorEditor::getParameterForSlider(Slider * slider)
