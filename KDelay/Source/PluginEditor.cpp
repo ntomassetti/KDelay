@@ -15,7 +15,7 @@
 KdelayAudioProcessorEditor::KdelayAudioProcessorEditor (KdelayAudioProcessor& p)
     : AudioProcessorEditor (&p), processor (p)
 {
-	int colorMult = 100;
+	int colorMult = 140;
 	auto& params = processor.getParameters();
 	for (auto pa : params)
 	{
@@ -33,6 +33,31 @@ KdelayAudioProcessorEditor::KdelayAudioProcessorEditor (KdelayAudioProcessor& p)
 			}
 			else {
 				aSlider->setSkewFactor(0.25f);
+			}
+
+
+			if (param->name == "Filter Type") {
+				aSlider->setSkewFactor(1.0f);
+				aSlider->setRange(param->range.start, param->range.end, 1);
+				aSlider->textFromValueFunction = [](double value) {
+					String filterType;
+					switch ((int)value)
+					{
+					case 0:
+						filterType = "Lowpass Filter";
+						break;
+					case 1:
+						filterType = "Highpass Filter";
+						break;
+					case 2:
+						filterType = "Bandpass Filter";
+						break;
+					default:
+						filterType = "Lowpass Filter";
+						break;
+					}
+					return filterType;
+				};
 			}
 
 			aSlider->setSliderStyle(Slider::LinearBar);

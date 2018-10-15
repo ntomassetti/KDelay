@@ -75,13 +75,16 @@ private:
 	AudioParameterFloat* Feedback;
 	AudioParameterFloat* DryLevel;
 	AudioParameterFloat* WetLevel;
-
+	AudioParameterFloat* FilterType;
+	AudioParameterFloat* FilterFreq;
+	AudioParameterFloat* FilterRes;
 	AudioParameterFloat* EnvFollowerAttack;
 	AudioParameterFloat* EnvFollowerRelease;
 
 	AudioParameterFloat* lerpAlpha;
 
 	AudioParameterBool* linkDelayLength;
+
 
 private:
 	/*Linear interpolate*/

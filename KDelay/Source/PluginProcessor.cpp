@@ -32,6 +32,9 @@ KdelayAudioProcessor::KdelayAudioProcessor()
 	addParameter(Feedback = new AudioParameterFloat("feedback", "Feedback", 0.001f, 0.99999999f, 0.25f));
 	addParameter(WetLevel = new AudioParameterFloat("wetLevel", "Wet Level", 0.0f, 1.0f, 1.0f));
 	addParameter(DryLevel = new AudioParameterFloat("dryLevel", "Dry Level", 0.0f, 1.0f, 1.0f));
+	addParameter(FilterType = new AudioParameterFloat("filterType", "Filter Type", 0.0f, 2.0f, 1.0f));
+	addParameter(FilterFreq = new AudioParameterFloat("filterFreq", "Filter Frequency", 22.0f, 22000.0f, 22000.0f));
+	addParameter(FilterRes = new AudioParameterFloat("filterRes", "Filter Resonance", 0.001, 20.0f, 1.0f));
 	addParameter(EnvFollowerAttack = new AudioParameterFloat("EnvAttack", "Envelope Follower Attack", 0.0001f, 5.0f, 0.1f));
 	addParameter(EnvFollowerRelease = new AudioParameterFloat("EnvRelease", "Envelope Follower Release", 0.0001f, 5.0f, 0.1f));
 	addParameter(lerpAlpha = new AudioParameterFloat("gaterelease", "Gate Release", 0.0001f, 1.0f, .001f));
@@ -206,6 +209,9 @@ void KdelayAudioProcessor::getStateInformation (MemoryBlock& destData)
 	MemoryOutputStream(destData, true).writeFloat(*Feedback);
 	MemoryOutputStream(destData, true).writeFloat(*WetLevel);
 	MemoryOutputStream(destData, true).writeFloat(*DryLevel);
+	MemoryOutputStream(destData, true).writeFloat(*FilterType);
+	MemoryOutputStream(destData, true).writeFloat(*FilterFreq);
+	MemoryOutputStream(destData, true).writeFloat(*FilterRes);
 	MemoryOutputStream(destData, true).writeFloat(*EnvFollowerAttack);
 	MemoryOutputStream(destData, true).writeFloat(*EnvFollowerRelease);
 	MemoryOutputStream(destData, true).writeFloat(*lerpAlpha);
@@ -220,6 +226,9 @@ void KdelayAudioProcessor::setStateInformation (const void* data, int sizeInByte
 	*Feedback = MemoryInputStream(data, static_cast<size_t> (sizeInBytes), false).readFloat();
 	*WetLevel = MemoryInputStream(data, static_cast<size_t> (sizeInBytes), false).readFloat();
 	*DryLevel = MemoryInputStream(data, static_cast<size_t> (sizeInBytes), false).readFloat();
+	*FilterType = MemoryInputStream(data, static_cast<size_t> (sizeInBytes), false).readFloat();
+	*FilterFreq = MemoryInputStream(data, static_cast<size_t> (sizeInBytes), false).readFloat();
+	*FilterRes = MemoryInputStream(data, static_cast<size_t> (sizeInBytes), false).readFloat();
 	*EnvFollowerAttack = MemoryInputStream(data, static_cast<size_t> (sizeInBytes), false).readFloat();
 	*EnvFollowerRelease = MemoryInputStream(data, static_cast<size_t> (sizeInBytes), false).readFloat();
 	*lerpAlpha = MemoryInputStream(data, static_cast<size_t> (sizeInBytes), false).readFloat();
@@ -237,14 +246,12 @@ void KdelayAudioProcessor::UpdateParameters()
 	if (*linkDelayLength) {
 		delay.setDelayTime(0, *LeftChDelLength);
 		delay.setDelayTime(1, *LeftChDelLength);
-		DBG("TRUE");
 	}
 	else {
 		delay.setDelayTime(0, *LeftChDelLength);
 		delay.setDelayTime(1, *RightChDelLength);
-		DBG("FALSE");
 	}
-
+	delay.UpdateFilterCoefs((int)*FilterType, *FilterFreq, *FilterRes);
 }
 
 

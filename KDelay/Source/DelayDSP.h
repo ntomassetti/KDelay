@@ -75,6 +75,12 @@ public:
 		setFeedback(0.5f);
 	}
 
+	enum FilterSelection {
+		Lowpass,
+		Highpass,
+		Bandpass
+	};
+
 	void prepare(const juce::dsp::ProcessSpec& spec) {
 		jassert(spec.numChannels <= maxNumChannels);
 		sampleRate = (Type)spec.sampleRate;
@@ -90,7 +96,30 @@ public:
 		}
 	}
 	
+	void UpdateFilterCoefs(int selection, Type Frequency, Type Res) {
+		
+		switch (selection)
+		{
+		case Lowpass:
+			filterCoefs = juce::dsp::IIR::Coefficients<Type>::makeLowPass(sampleRate, Frequency, Res);
+			break;
+		case Highpass:
+			filterCoefs = juce::dsp::IIR::Coefficients<Type>::makeHighPass(sampleRate, Frequency, Res);
+			break;
+		case Bandpass:
+			filterCoefs = juce::dsp::IIR::Coefficients<Type>::makeBandPass(sampleRate, Frequency, Res);
+			break;
+		default:
+			filterCoefs = juce::dsp::IIR::Coefficients<Type>::makeLowPass(sampleRate, Frequency, Res);
+			break;
+		}
+		
 
+		for (auto& f : filters)
+		{
+			f.coefficients = filterCoefs;
+		}
+	}
 	void reset() noexcept
 	{
 		for (auto& f : filters)
@@ -165,7 +194,7 @@ public:
 			auto& filter = filters[ch];
 
 			for (size_t i = 0; i < numSamples; ++i) {
-				auto delayedSample = dline.get(delayTime);
+				auto delayedSample = filter.processSample(dline.get(delayTime));
 				auto inputSample = wetLevel * input[i];
 				auto dlineInputSample = std::tanh(inputSample + feedback * delayedSample);
 				dline.push(dlineInputSample);
